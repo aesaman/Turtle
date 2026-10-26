@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#000000" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="رهگیر مطالعه" />
+  <meta name="application-name" content="رهگیر مطالعه کنکور" />
+  <title>رهگیر مطالعه کنکور</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
+  <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
+  <link rel="stylesheet" href="style.css?v=26.37" />
+  <script>
+    // Register SW immediately (Android needs SW+fetch for Install app ≠ shortcut)
+    (function () {
+      if (!("serviceWorker" in navigator)) return;
+      var KEY = "rahgir_sw_ctrl_26.37";
+      navigator.serviceWorker.register("./sw.js", { scope: "./", updateViaCache: "none" })
+        .then(function (reg) {
+          if (reg.waiting) reg.waiting.postMessage({ type: "SKIP_WAITING" });
+          return navigator.serviceWorker.ready;
+        })
+        .then(function () {
+          if (!navigator.serviceWorker.controller && !sessionStorage.getItem(KEY)) {
+            sessionStorage.setItem(KEY, "1");
+            location.reload();
+          }
+        })
+        .catch(function (e) { console.warn("SW", e); });
+    })();
+  </script>
+</head>
+<body>
+  <div id="app" class="app"><p>در حال بارگذاری…</p></div>
+  <div id="pwaInstallBar" style="display:none;position:fixed;left:12px;right:12px;bottom:calc(72px + env(safe-area-inset-bottom,0px));z-index:9999;background:#16181f;border:1px solid rgba(230,168,23,.45);border-radius:14px;padding:12px 14px;color:#fff;font-family:Tahoma,sans-serif;box-shadow:0 8px 28px rgba(0,0,0,.45)">
+    <div style="font-size:14px;margin-bottom:8px">نصب به‌صورت اپ مستقل</div>
+    <div style="display:flex;gap:8px">
+      <button type="button" id="pwaInstallBtn" style="flex:1;background:#E6A817;color:#000;border:0;border-radius:10px;padding:10px;font-weight:700">نصب</button>
+      <button type="button" id="pwaInstallDismiss" style="background:transparent;color:#aaa;border:1px solid #333;border-radius:10px;padding:10px 12px">بعداً</button>
+    </div>
+  </div>
+  <script>
+    window.__rahgirDeferredPrompt = null;
+    window.addEventListener("beforeinstallprompt", function (e) {
+      e.preventDefault();
+      window.__rahgirDeferredPrompt = e;
+      var bar = document.getElementById("pwaInstallBar");
+      if (bar) bar.style.display = "block";
+    });
+    window.addEventListener("appinstalled", function () {
+      window.__rahgirDeferredPrompt = null;
+      var bar = document.getElementById("pwaInstallBar");
+      if (bar) bar.style.display = "none";
+    });
+    document.addEventListener("DOMContentLoaded", function () {
+      var btn = document.getElementById("pwaInstallBtn");
+      var dis = document.getElementById("pwaInstallDismiss");
+      if (btn) btn.onclick = function () {
+        var p = window.__rahgirDeferredPrompt;
+        if (!p) return;
+        p.prompt();
+        p.userChoice.finally(function () { window.__rahgirDeferredPrompt = null; });
+        var bar = document.getElementById("pwaInstallBar");
+        if (bar) bar.style.display = "none";
+      };
+      if (dis) dis.onclick = function () {
+        var bar = document.getElementById("pwaInstallBar");
+        if (bar) bar.style.display = "none";
+      };
+    });
+  </script>
+  <div id="mini" class="mini-timer"></div>
+  <nav class="dock" id="dock">
+    <div class="dock-island"><div class="dock-inner">
+      <button type="button" data-nav="manage">مدیریت</button>
+      <button type="button" data-nav="history">تاریخچه</button>
+      <button type="button" data-nav="stats">آمار</button>
+      <button type="button" data-nav="exam">آزمون</button>
+      <button type="button" data-nav="share">اشتراک</button>
+    </div></div>
+  </nav>
+  <div id="overlay" class="overlay"><div class="sheet" id="sheet"></div></div>
+  <div id="focus" class="focus"></div>
+  <article id="print" class="print-only"></article>
+  <script type="module" src="app.js?v=26.37"></script>
+</body>
+</html>
